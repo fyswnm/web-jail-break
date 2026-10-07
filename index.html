@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="越狱行动">
+  <title>越狱大逃亡 - Prison Break</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓️</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230f172a'/><text y='.75em' x='15' font-size='70'>⛓️</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 主游戏画布 -->
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- 顶部状态栏 HUD -->
+    <div id="hud-top">
+      <div class="hud-panel player-status">
+        <div class="status-row">
+          <span class="hud-label">❤️ 生命</span>
+          <div class="bar-container hp-bar-bg">
+            <div id="hp-bar" class="bar-fill hp-bar-fill" style="width: 100%;"></div>
+            <span id="hp-text" class="bar-text">100/100</span>
+          </div>
+        </div>
+        <div class="status-row">
+          <span class="hud-label">⚡ 体力</span>
+          <div class="bar-container sp-bar-bg">
+            <div id="sp-bar" class="bar-fill sp-bar-fill" style="width: 100%;"></div>
+            <span id="sp-text" class="bar-text">100/100</span>
+          </div>
+        </div>
+        <div class="status-row">
+          <span class="hud-label">🚨 警报</span>
+          <div class="bar-container alert-bar-bg">
+            <div id="alert-bar" class="bar-fill alert-bar-fill" style="width: 0%;"></div>
+            <span id="alert-text" class="bar-text">安全 0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 当前任务目标 -->
+      <div class="hud-panel mission-panel">
+        <div class="mission-header">📋 当前目标</div>
+        <div id="mission-text" class="mission-desc">逃出牢房，寻找出路...</div>
+      </div>
+
+      <!-- 右上角小地图 & 设置 -->
+      <div class="hud-panel minimap-panel">
+        <canvas id="minimap-canvas" width="130" height="130"></canvas>
+        <button id="btn-fullscreen" class="hud-btn" title="全屏模式">⛶ 全屏</button>
+        <button id="btn-sound" class="hud-btn" title="开关声音">🔊 声音</button>
+      </div>
+    </div>
+
+    <!-- 底部物品栏 HUD -->
+    <div id="hud-inventory">
+      <div class="inventory-title">🎒 物品栏</div>
+      <div id="inventory-slots" class="inventory-slots">
+        <!-- 物品栏插槽由 JS 动态生成 -->
+      </div>
+    </div>
+
+    <!-- 屏幕中央交互提示 -->
+    <div id="interaction-prompt" class="interaction-prompt hidden">
+      <span class="prompt-key">🖐</span>
+      <span id="prompt-text">按【搜寻/互动】开门</span>
+    </div>
+
+    <!-- 消息横幅通知 -->
+    <div id="notification-banner" class="notification-banner hidden"></div>
+
+    <!-- 触屏虚拟按键控制层 (专为 iPad / 触屏优化) -->
+    <div id="touch-controls">
+      <!-- 左下角：虚拟摇杆 -->
+      <div id="joystick-zone">
+        <div id="joystick-base">
+          <div id="joystick-knob"></div>
+        </div>
+      </div>
+
+      <!-- 右下角：动作按键组 -->
+      <div id="action-buttons">
+        <div class="action-btn-row">
+          <button id="btn-sneak" class="action-btn round-btn-sub" title="潜行模式 (降低脚步声)">
+            <span class="btn-icon">👟</span>
+            <span class="btn-text">潜行</span>
+          </button>
+          <button id="btn-interact" class="action-btn round-btn-sub" title="搜寻/开门/使用">
+            <span class="btn-icon">🖐</span>
+            <span class="btn-text">互动</span>
+          </button>
+        </div>
+        <div class="action-btn-row">
+          <button id="btn-sprint" class="action-btn round-btn-sub" title="冲刺加速">
+            <span class="btn-icon">⚡</span>
+            <span class="btn-text">冲刺</span>
+          </button>
+          <button id="btn-attack" class="action-btn round-btn-main" title="挥拳 / 暗算守卫">
+            <span class="btn-icon">👊</span>
+            <span class="btn-text">攻击</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏开始/暂停/结束弹窗 -->
+    <div id="modal-overlay" class="modal-overlay">
+      <!-- 开始界面 -->
+      <div id="start-modal" class="modal-box">
+        <div class="modal-badge">TACTICAL ESCAPE</div>
+        <h1 class="modal-title">⛓️ 越狱行动 ⛓️</h1>
+        <p class="modal-subtitle">PRISON BREAK: TOP SECRET BREAKOUT</p>
+        
+        <div class="modal-story">
+          你被冤枉关入这座高度戒备的黑石监狱。<br>
+          巡逻狱警戒备森严，监控探头扫视着走廊。<br>
+          <strong>制定计划，搜寻工具，打倒守卫，逃出生天！</strong>
+        </div>
+
+        <div class="modal-guides">
+          <div class="guide-item">
+            <span class="guide-icon">🕹️</span>
+            <div><strong>移动：</strong> 点击屏幕移动 / 左手拖拽摇杆（键盘 WASD）</div>
+          </div>
+          <div class="guide-item">
+            <span class="guide-icon">👊</span>
+            <div><strong>暗杀/击倒：</strong> 靠近敌人背后攻击一击击晕，正面会被反击！</div>
+          </div>
+          <div class="guide-item">
+            <span class="guide-icon">👟</span>
+            <div><strong>潜行：</strong> 避开敌人黄色视野锥，进入通风管或更衣柜隐藏！</div>
+          </div>
+          <div class="guide-item">
+            <span class="guide-icon">🚪</span>
+            <div><strong>搜集与逃脱：</strong> 搜刮钥匙卡、铁撬与警服伪装，找到大门或下水道逃出！</div>
+          </div>
+        </div>
+
+        <button id="btn-start-game" class="btn-primary">🚨 开始越狱 🚨</button>
+      </div>
+
+      <!-- 胜利界面 -->
+      <div id="victory-modal" class="modal-box hidden">
+        <div class="modal-badge victory-badge">MISSION COMPLETE</div>
+        <h1 class="modal-title" style="color: #4ade80;">🎉 成功逃脱！ 🎉</h1>
+        <p class="modal-subtitle">自由的空气如此甜美！你成功打破了黑石监狱的不败神话！</p>
+        
+        <div id="victory-stats" class="modal-stats">
+          <!-- 统计数据由 JS 填充 -->
+        </div>
+
+        <button id="btn-restart-game" class="btn-primary">🔄 再玩一次</button>
+      </div>
+
+      <!-- 失败界面 -->
+      <div id="gameover-modal" class="modal-box hidden">
+        <div class="modal-badge gameover-badge">BUSTED</div>
+        <h1 class="modal-title" style="color: #f87171;">💀 越狱失败 💀</h1>
+        <p id="gameover-reason" class="modal-subtitle">你被狱警逮捕，关入了禁闭室...</p>
+        
+        <button id="btn-retry-game" class="btn-primary">⚡ 重新开始尝试</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

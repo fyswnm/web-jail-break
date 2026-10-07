@@ -1,0 +1,695 @@
+/* ==========================================================================
+   越狱大逃亡 (Prison Break) - iPad & Touch 优先样式表
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg-color: #0b0f19;
+  --panel-bg: rgba(15, 23, 42, 0.88);
+  --panel-border: rgba(59, 130, 246, 0.35);
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #22c55e;
+  --accent-red: #ef4444;
+  --accent-yellow: #eab308;
+  --accent-orange: #f97316;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --btn-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  color: var(--text-main);
+  touch-action: none;
+  position: fixed;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #05070c;
+}
+
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   顶部状态栏 HUD
+   ========================================================================== */
+
+#hud-top {
+  position: absolute;
+  top: env(safe-area-inset-top, 10px);
+  left: env(safe-area-inset-left, 12px);
+  right: env(safe-area-inset-right, 12px);
+  height: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 20;
+  pointer-events: none;
+  gap: 12px;
+}
+
+.hud-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}
+
+/* 玩家状态条 */
+.player-status {
+  min-width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hud-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #cbd5e1;
+  width: 50px;
+}
+
+.bar-container {
+  flex: 1;
+  height: 17px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 9px;
+  overflow: hidden;
+  position: relative;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.15s ease-out;
+}
+
+.hp-bar-fill {
+  background: linear-gradient(90deg, #ef4444, #22c55e);
+}
+
+.sp-bar-fill {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+.alert-bar-fill {
+  background: linear-gradient(90deg, #eab308, #ef4444);
+}
+
+.bar-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* 任务目标栏 */
+.mission-panel {
+  flex: 1;
+  max-width: 480px;
+  text-align: center;
+  padding: 10px 16px;
+}
+
+.mission-header {
+  font-size: 13px;
+  color: var(--accent-cyan);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+
+.mission-desc {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  white-space: normal;
+  line-height: 1.35;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* 小地图与快捷按钮 */
+.minimap-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+}
+
+#minimap-canvas {
+  border-radius: 8px;
+  border: 1.5px solid rgba(59, 130, 246, 0.6);
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.hud-btn {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #f1f5f9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hud-btn:active {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+/* ==========================================================================
+   底部物品栏 HUD
+   ========================================================================== */
+
+#hud-inventory {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 15px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 8px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 20;
+  pointer-events: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.inventory-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  letter-spacing: 1px;
+}
+
+.inventory-slots {
+  display: flex;
+  gap: 10px;
+}
+
+.slot-box {
+  width: 56px;
+  height: 56px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.slot-box.has-item {
+  border-color: var(--accent-cyan);
+  background: rgba(6, 182, 212, 0.15);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+}
+
+.slot-icon {
+  font-size: 28px;
+}
+
+.slot-count {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+}
+
+.slot-tag {
+  position: absolute;
+  top: -8px;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--accent-blue);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   屏幕提示与横幅
+   ========================================================================== */
+
+.interaction-prompt {
+  position: absolute;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.96);
+  border: 2.5px solid var(--accent-yellow);
+  padding: 12px 24px;
+  border-radius: 28px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 30px rgba(234, 179, 8, 0.5);
+  z-index: 25;
+  pointer-events: none;
+  animation: pulse-glow 1.5s infinite;
+}
+
+.prompt-key {
+  font-size: 24px;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.05); }
+}
+
+.notification-banner {
+  position: absolute;
+  top: 95px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(2, 6, 23, 0.95);
+  border: 2px solid var(--accent-cyan);
+  padding: 12px 26px;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+  z-index: 40;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.notification-banner.alert-warning {
+  border-color: var(--accent-red);
+  background: rgba(127, 29, 29, 0.92);
+  animation: shake 0.4s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(-50%); }
+  25% { transform: translateX(calc(-50% - 6px)); }
+  75% { transform: translateX(calc(-50% + 6px)); }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   触屏虚拟控制器 (iPad 特别优化)
+   ========================================================================== */
+
+#touch-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* 左侧摇杆区域 */
+#joystick-zone {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
+  left: calc(env(safe-area-inset-left, 20px) + 20px);
+  width: 170px;
+  height: 170px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+#joystick-base {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(15, 23, 42, 0.6) 70%, rgba(59, 130, 246, 0.4) 100%);
+  border: 2.5px solid rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.2);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#joystick-knob {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #60a5fa 10%, #2563eb 80%, #1d4ed8 100%);
+  border: 2px solid #93c5fd;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.6);
+  position: absolute;
+  pointer-events: none;
+  transform: translate(0, 0);
+  transition: transform 0.05s ease-out;
+}
+
+/* 右侧动作按键区 */
+#action-buttons {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom, 20px) + 20px);
+  right: calc(env(safe-area-inset-right, 20px) + 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.action-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  align-items: center;
+}
+
+.action-btn {
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: var(--btn-shadow);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  position: relative;
+  transition: transform 0.1s, filter 0.1s;
+}
+
+.action-btn:active {
+  transform: scale(0.92);
+  filter: brightness(1.2);
+}
+
+.round-btn-main {
+  width: 84px;
+  height: 84px;
+  background: radial-gradient(circle, #ef4444 20%, #b91c1c 90%);
+  border: 3px solid #fca5a5;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.round-btn-main .btn-icon {
+  font-size: 32px;
+}
+
+.round-btn-main .btn-text {
+  font-size: 11px;
+  font-weight: 800;
+  text-shadow: 0 1px 2px #000;
+}
+
+.round-btn-sub {
+  width: 66px;
+  height: 66px;
+  background: radial-gradient(circle, #334155 20%, #1e293b 90%);
+  border: 2px solid #64748b;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.round-btn-sub .btn-icon {
+  font-size: 24px;
+}
+
+.round-btn-sub .btn-text {
+  font-size: 10px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+/* 按钮高亮/开启状态与固定位置优化 */
+#btn-sneak.active {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+  border: 3px solid #6ee7b7 !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.85) !important;
+  color: #fff;
+}
+
+#btn-sprint.active {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
+  border: 3px solid #fde047 !important;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.85) !important;
+  color: #fff;
+}
+
+#btn-interact.active-prompt {
+  border-color: #fde047 !important;
+  background: radial-gradient(circle, #eab308 10%, #ca8a04 80%) !important;
+  box-shadow: 0 0 25px rgba(234, 179, 8, 0.85) !important;
+  /* 专属缩放呼吸动效：绝不修改水平或垂直偏移，保持按钮原位固定！ */
+  animation: interact-btn-pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes interact-btn-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(234, 179, 8, 0.6);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 28px rgba(234, 179, 8, 0.95);
+  }
+}
+
+/* ==========================================================================
+   弹窗浮层 (开始/暂停/胜利/失败)
+   ========================================================================== */
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.modal-box {
+  background: linear-gradient(145deg, #0f172a 0%, #090d16 100%);
+  border: 2px solid rgba(59, 130, 246, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(59, 130, 246, 0.2);
+  border-radius: 20px;
+  width: 90%;
+  max-width: 580px;
+  padding: 30px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.modal-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid var(--accent-blue);
+  color: var(--accent-cyan);
+  border-radius: 20px;
+}
+
+.victory-badge {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: var(--accent-green);
+  color: #4ade80;
+}
+
+.gameover-badge {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--accent-red);
+  color: #f87171;
+}
+
+.modal-title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.modal-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.modal-story {
+  background: rgba(0, 0, 0, 0.4);
+  border-left: 3px solid var(--accent-cyan);
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #cbd5e1;
+  text-align: left;
+  width: 100%;
+}
+
+.modal-guides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+}
+
+@media (max-width: 500px) {
+  .modal-guides {
+    grid-template-columns: 1fr;
+  }
+}
+
+.guide-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.guide-item strong {
+  color: #e2e8f0;
+}
+
+.guide-icon {
+  font-size: 20px;
+}
+
+.btn-primary {
+  width: 100%;
+  max-width: 320px;
+  padding: 14px 20px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: 2px solid #60a5fa;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+  transition: all 0.15s;
+  touch-action: manipulation;
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+.modal-stats {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 14px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  gap: 12px;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-val {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--accent-cyan);
+}
+
+.stat-lbl {
+  font-size: 11px;
+  color: var(--text-muted);
+}
